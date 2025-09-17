@@ -1,0 +1,12 @@
+[package]
+name = "matcat"
+version = "0.1.0"
+edition = "2021"
+description = "Material Categories & Variants — human-friendly layer on top of utomid chemistry."
+license = "MIT"
+repository = "https://github.com/JDPlumbing/matcat"
+readme = "README.md"
+
+[dependencies]
+utomid-rs = "0.1"   # depends on your already published crate
+once_cell = "1.19"
