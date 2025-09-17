@@ -1,22 +1,12 @@
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Category {
-    Metal,
-    Plastic,
-    Wood,
-    Ceramic,
-    Composite,
-    Other(String),
-}
+use std::collections::HashMap;
+use once_cell::sync::Lazy;
 
-impl Category {
-    pub fn name(&self) -> &str {
-        match self {
-            Category::Metal => "Metal",
-            Category::Plastic => "Plastic",
-            Category::Wood => "Wood",
-            Category::Ceramic => "Ceramic",
-            Category::Composite => "Composite",
-            Category::Other(s) => s,
-        }
-    }
-}
+/// High-level categories (u8)
+pub static CATEGORY_MAP: Lazy<HashMap<u8, &'static str>> = Lazy::new(|| {
+    let mut m = HashMap::new();
+    m.insert(1, "Metal");
+    m.insert(2, "Plastic");
+    m.insert(3, "Wood");
+    m.insert(4, "Composite");
+    m
+});
