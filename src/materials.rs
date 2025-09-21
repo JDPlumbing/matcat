@@ -10,87 +10,127 @@ impl MatCatId {
     pub fn new(category: u8, variant: u16, grade: u16) -> Self {
         Self { category, variant, grade }
     }
+
+    /// Collapse into a single 64-bit seed for procedural generation
+    pub fn seed(&self) -> u64 {
+        ((self.category as u64) << 32) | ((self.variant as u64) << 16) | (self.grade as u64)
+    }
 }
 
-/// Abstracted material properties
+/// Canonical material property set.
+/// Every material is defined by these values, regardless of name.
 #[derive(Debug, Clone, Copy)]
 pub struct MatProps {
-    pub density: f32,       // g/cm³
-    pub conductivity: f32,  // electrical 0.0–1.0
-    pub hardness: f32,      // Mohs-like 0.0–10.0
-    pub flammability: f32,  // 0.0–1.0
-    pub corrosion: f32,     // 0.0–1.0
-    pub tensile: f32,       // MPa (approx)
+    // --- Mechanical ---
+    pub density: f32,              // kg/m³
+    pub elastic_modulus: f32,      // GPa
+    pub tensile_strength: f32,     // MPa
+    pub compressive_strength: f32, // MPa
+    pub hardness: f32,             // Mohs-like 0–10
+    pub fracture_toughness: f32,   // MPa·m^0.5
+    pub fatigue_resistance: f32,   // 0.0–1.0
+
+    // --- Thermal ---
+    pub thermal_conductivity: f32, // W/m·K
+    pub thermal_expansion: f32,    // 1/K
+    pub melting_point: f32,        // °C
+
+    // --- Chemical ---
+    pub corrosion_resistance: f32, // 0.0–1.0
+    pub solubility: f32,           // 0.0–1.0
+    pub permeability: f32,         // 0.0–1.0
+    pub flammability: f32,         // 0.0–1.0
+
+    // --- Electrical / Magnetic ---
+    pub electrical_conductivity: f32, // 0.0–1.0
+    pub magnetic_permeability: f32,   // relative μ
 }
 
-/// Category-level defaults
-fn default_props_for_category(cat: u8) -> MatProps {
-    match cat {
-        1 => MatProps { // Metal
-            density: 7.5,
-            conductivity: 0.7,
-            hardness: 5.0,
-            flammability: 0.0,
-            corrosion: 0.5,
-            tensile: 200.0,
-        },
-        2 => MatProps { // Plastic
-            density: 1.2,
-            conductivity: 0.0,
-            hardness: 2.0,
-            flammability: 0.8,
-            corrosion: 0.0,
-            tensile: 50.0,
-        },
-        3 => MatProps { // Wood
-            density: 0.7,
-            conductivity: 0.0,
-            hardness: 3.0,
-            flammability: 0.9,
-            corrosion: 0.1,
-            tensile: 40.0,
-        },
-        _ => MatProps { // Unknown fallback (water-ish baseline)
-            density: 1.0,
-            conductivity: 0.0,
-            hardness: 1.0,
-            flammability: 0.5,
-            corrosion: 0.5,
-            tensile: 10.0,
-        },
+/// Small deterministic PRNG for procedural props
+fn lcg(mut seed: u64) -> impl FnMut() -> f32 {
+    move || {
+        seed = seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+        let bits = (seed >> 32) as u32;
+        (bits as f32) / (u32::MAX as f32) // → [0.0, 1.0]
     }
 }
 
-/// Variant-level overrides (examples)
-fn override_variant_props(cat: u8, var: u16, mut props: MatProps) -> MatProps {
-    match (cat, var) {
-        (1, 42) => { // Metal → Copper
-            props.density = 8.9;
-            props.conductivity = 1.0;
-            props.hardness = 3.0;
-            props.corrosion = 0.6;
-            props.tensile = 210.0;
-        }
-        (1, 43) => { // Metal → Iron
-            props.density = 7.9;
-            props.conductivity = 0.2;
-            props.hardness = 4.0;
-            props.corrosion = 0.8;
-            props.tensile = 250.0;
-        }
-        (2, 10) => { // Plastic → PVC
-            props.density = 1.4;
-            props.hardness = 2.5;
-            props.flammability = 0.4;
-            props.tensile = 55.0;
-        }
-        _ => {}
-    }
-    props
-}
-
-/// Public API: get material properties
+/// Procedurally derive material properties from MatCatId
 pub fn props_for(id: &MatCatId) -> MatProps {
-    let defaults = default_props_for_category(id.category);
-    override_variant_props(id.category, id.variant, defaults)
+    let mut rng = lcg(id.seed());
+
+    MatProps {
+        // Mechanical
+        density: 500.0 + rng() * 20000.0,             // 500–20,500 kg/m³
+        elastic_modulus: rng() * 400.0,                // up to ~400 GPa
+        tensile_strength: rng() * 2000.0,              // up to ~2000 MPa
+        compressive_strength: rng() * 4000.0,          // up to ~4000 MPa
+        hardness: rng() * 10.0,                        // 0–10
+        fracture_toughness: rng() * 50.0,              // up to ~50 MPa·m^0.5
+        fatigue_resistance: rng(),                     // 0–1
+
+        // Thermal
+        thermal_conductivity: rng() * 400.0,           // 0–400 W/m·K
+        thermal_expansion: rng() * 1e-4,               // 0–1e-4 1/K
+        melting_point: rng() * 4000.0,                 // 0–4000 °C
+
+        // Chemical
+        corrosion_resistance: rng(),
+        solubility: rng(),
+        permeability: rng(),
+        flammability: rng(),
+
+        // Electrical / Magnetic
+        electrical_conductivity: rng(),
+        magnetic_permeability: rng() * 1000.0,         // up to 1000x μ₀
+    }
 }
+
+use std::f32;
+
+/// Distance metric between two materials (Euclidean in property space).
+fn distance(a: &MatProps, b: &MatProps) -> f32 {
+    let diffs = [
+        (a.density - b.density).powi(2),
+        (a.elastic_modulus - b.elastic_modulus).powi(2),
+        (a.tensile_strength - b.tensile_strength).powi(2),
+        (a.compressive_strength - b.compressive_strength).powi(2),
+        (a.hardness - b.hardness).powi(2),
+        (a.fracture_toughness - b.fracture_toughness).powi(2),
+        (a.fatigue_resistance - b.fatigue_resistance).powi(2),
+
+        (a.thermal_conductivity - b.thermal_conductivity).powi(2),
+        (a.thermal_expansion - b.thermal_expansion).powi(2),
+        (a.melting_point - b.melting_point).powi(2),
+
+        (a.corrosion_resistance - b.corrosion_resistance).powi(2),
+        (a.solubility - b.solubility).powi(2),
+        (a.permeability - b.permeability).powi(2),
+        (a.flammability - b.flammability).powi(2),
+
+        (a.electrical_conductivity - b.electrical_conductivity).powi(2),
+        (a.magnetic_permeability - b.magnetic_permeability).powi(2),
+    ];
+
+    diffs.iter().sum::<f32>().sqrt()
+}
+
+/// Find the closest material ID to some target properties.
+pub fn find_closest_material(target: &MatProps, search_space: &[MatCatId]) -> Option<(MatCatId, MatProps)> {
+    let mut best_id = None;
+    let mut best_props = None;
+    let mut best_dist = f32::MAX;
+
+    for id in search_space {
+        let props = props_for(id);
+        let d = distance(&props, target);
+        if d < best_dist {
+            best_dist = d;
+            best_id = Some(*id);
+            best_props = Some(props);
+        }
+    }
+
+    best_id.zip(best_props)
+}
+
