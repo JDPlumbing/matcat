@@ -56,7 +56,7 @@ fn lcg(mut seed: u64) -> impl FnMut() -> f32 {
 }
 
 /// Procedurally derive material properties from MatCatId
-use crate::category_ranges::{get_category_ranges, generate_props_from_category};
+use crate::category_ranges::generate_props_from_category;
 
 pub fn props_for(id: &MatCatId) -> MatProps {
     if let Some(props) = generate_props_from_category(id.category, &mut rand::rng()) {

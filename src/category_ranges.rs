@@ -390,22 +390,22 @@ pub fn get_category_ranges(cat: u8) -> Option<PropRange> {
 /// Generate props constrained by category ranges
 pub fn generate_props_from_category(cat: u8, rng: &mut impl Rng) -> Option<MatProps> {
     get_category_ranges(cat).map(|r| MatProps {
-        density: rng.gen_range(r.density.0..r.density.1),
-        elastic_modulus: rng.gen_range(r.elastic_modulus.0..r.elastic_modulus.1),
-        tensile_strength: rng.gen_range(r.tensile_strength.0..r.tensile_strength.1),
-        compressive_strength: rng.gen_range(r.compressive_strength.0..r.compressive_strength.1),
-        hardness: rng.gen_range(r.hardness.0..r.hardness.1),
-        fracture_toughness: rng.gen_range(r.fracture_toughness.0..r.fracture_toughness.1),
-        fatigue_resistance: rng.gen_range(r.fatigue_resistance.0..r.fatigue_resistance.1),
-        thermal_conductivity: rng.gen_range(r.thermal_conductivity.0..r.thermal_conductivity.1),
-        thermal_expansion: rng.gen_range(r.thermal_expansion.0..r.thermal_expansion.1),
-        melting_point: rng.gen_range(r.melting_point.0..r.melting_point.1),
-        corrosion_resistance: rng.gen_range(r.corrosion_resistance.0..r.corrosion_resistance.1),
-        solubility: rng.gen_range(r.solubility.0..r.solubility.1),
-        permeability: rng.gen_range(r.permeability.0..r.permeability.1),
-        flammability: rng.gen_range(r.flammability.0..r.flammability.1),
-        electrical_conductivity: rng.gen_range(r.electrical_conductivity.0..r.electrical_conductivity.1),
-        magnetic_permeability: rng.gen_range(r.magnetic_permeability.0..r.magnetic_permeability.1),
+        density: rng.random_range(r.density.0..r.density.1),
+        elastic_modulus: rng.random_range(r.elastic_modulus.0..r.elastic_modulus.1),
+        tensile_strength: rng.random_range(r.tensile_strength.0..r.tensile_strength.1),
+        compressive_strength: rng.random_range(r.compressive_strength.0..r.compressive_strength.1),
+        hardness: rng.random_range(r.hardness.0..r.hardness.1),
+        fracture_toughness: rng.random_range(r.fracture_toughness.0..r.fracture_toughness.1),
+        fatigue_resistance: rng.random_range(r.fatigue_resistance.0..r.fatigue_resistance.1),
+        thermal_conductivity: rng.random_range(r.thermal_conductivity.0..r.thermal_conductivity.1),
+        thermal_expansion: rng.random_range(r.thermal_expansion.0..r.thermal_expansion.1),
+        melting_point: rng.random_range(r.melting_point.0..r.melting_point.1),
+        corrosion_resistance: rng.random_range(r.corrosion_resistance.0..r.corrosion_resistance.1),
+        solubility: rng.random_range(r.solubility.0..r.solubility.1),
+        permeability: rng.random_range(r.permeability.0..r.permeability.1),
+        flammability: rng.random_range(r.flammability.0..r.flammability.1),
+        electrical_conductivity: rng.random_range(r.electrical_conductivity.0..r.electrical_conductivity.1),
+        magnetic_permeability: rng.random_range(r.magnetic_permeability.0..r.magnetic_permeability.1),
     })
 }
 

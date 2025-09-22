@@ -4,13 +4,15 @@ use matcat::{MatCatId, props_for};
 fn bench_category_props(c: &mut Criterion) {
     let mut group = c.benchmark_group("category_props");
 
-    // try 10k samples across a few categories
+    // Generate 10k samples across 10 categories
     group.bench_function("generate_props_10k", |b| {
         b.iter(|| {
             for cat in 1..=10 {
                 for i in 0..1000 {
-                    let id = MatCatId::new(cat, (i & 0xFF) as u8, 0, 0, 0);
-                    let _props = props_for(id);
+                    // (category: u8, variant: u16, grade: u16)
+                    let id = MatCatId::new(cat, i as u16, 0);
+                    // props_for takes a reference
+                    let _props = props_for(&id);
                 }
             }
         })

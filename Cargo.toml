@@ -1,6 +1,6 @@
 [package]
 name = "matcat"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Material Categories & Variants — human-friendly layer on top of utomid chemistry."
 license = "MIT"
