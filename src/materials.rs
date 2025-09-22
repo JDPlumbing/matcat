@@ -56,35 +56,38 @@ fn lcg(mut seed: u64) -> impl FnMut() -> f32 {
 }
 
 /// Procedurally derive material properties from MatCatId
+use crate::category_ranges::{get_category_ranges, generate_props_from_category};
+
 pub fn props_for(id: &MatCatId) -> MatProps {
-    let mut rng = lcg(id.seed());
+    if let Some(props) = generate_props_from_category(id.category, &mut rand::rng()) {
+        props
+    } else {
+        // fallback to old RNG if category is undefined
+        let mut rng = lcg(id.seed());
+        MatProps {
+            density: 500.0 + rng() * 20000.0,
+            elastic_modulus: rng() * 4e11,
+            tensile_strength: rng() * 2000.0,
+            compressive_strength: rng() * 4000.0,
+            hardness: rng() * 10.0,
+            fracture_toughness: rng() * 50.0,
+            fatigue_resistance: rng(),
 
-    MatProps {
-        // Mechanical
-        density: 500.0 + rng() * 20000.0,             // 500–20,500 kg/m³
-        elastic_modulus: rng() * 400.0,                // up to ~400 GPa
-        tensile_strength: rng() * 2000.0,              // up to ~2000 MPa
-        compressive_strength: rng() * 4000.0,          // up to ~4000 MPa
-        hardness: rng() * 10.0,                        // 0–10
-        fracture_toughness: rng() * 50.0,              // up to ~50 MPa·m^0.5
-        fatigue_resistance: rng(),                     // 0–1
+            thermal_conductivity: rng() * 400.0,
+            thermal_expansion: rng() * 1e-4,
+            melting_point: rng() * 4000.0,
 
-        // Thermal
-        thermal_conductivity: rng() * 400.0,           // 0–400 W/m·K
-        thermal_expansion: rng() * 1e-4,               // 0–1e-4 1/K
-        melting_point: rng() * 4000.0,                 // 0–4000 °C
+            corrosion_resistance: rng(),
+            solubility: rng(),
+            permeability: rng(),
+            flammability: rng(),
 
-        // Chemical
-        corrosion_resistance: rng(),
-        solubility: rng(),
-        permeability: rng(),
-        flammability: rng(),
-
-        // Electrical / Magnetic
-        electrical_conductivity: rng(),
-        magnetic_permeability: rng() * 1000.0,         // up to 1000x μ₀
+            electrical_conductivity: rng(),
+            magnetic_permeability: rng() * 1000.0,
+        }
     }
 }
+
 
 use std::f32;
 

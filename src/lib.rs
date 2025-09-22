@@ -8,6 +8,7 @@
 //! Public API is kept flat: just `use matcat::...`.
 
 pub mod materials;
+pub mod category_ranges;
 
 pub use materials::{
     MatCatId,
@@ -15,3 +16,5 @@ pub use materials::{
     props_for,
     find_closest_material,
 };
+
+pub use category_ranges::*;
